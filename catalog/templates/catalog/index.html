@@ -27,10 +27,7 @@
     <li><strong>Copies available:</strong> {{ num_instances_available }}</li>
     <li><strong>Authors:</strong> {{ num_authors }}</li>
     <li><strong>Book`s num with 'Wise':</strong> {{ num_books_search_title }}</li>
+    <li><mark><strong>You have visited this page </strong> {{ num_visits }} <strong> time{{ num_visits|pluralize }}.</strong></mark></li>
 </ul>
-
-
-<p>You have visited this page {{ num_visits }} time{{ num_visits|pluralize }}.</p>
-
 {% endblock %}
 
