@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from .models import Book, Author, BookInstance, Genre
-from django.views import generic
+from django.views import generic, View
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 def index(request):
@@ -82,3 +83,22 @@ class AuthorDetailView(generic.DetailView):
     def author_detail_view(request, primary_key):
         author = get_object_or_404(Author, pk=primary_key)
         return render(request, 'catalog/author_detail.html', context={'author': author})
+
+
+class MyView(LoginRequiredMixin, View):
+    login_url = '/login/'
+    redirect_field_name = 'redirect_to'
+
+
+class LoanedBooksByUserListView(LoginRequiredMixin, generic.ListView):
+    """Generic class-based view listing books on loan to current user."""
+    model = BookInstance
+    template_name = 'catalog/bookinstance_list_borrowed_user.html'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return (
+            BookInstance.objects.filter(borrower=self.request.user)
+            .filter(status__exact='o')
+            .order_by('due_back')
+        )
