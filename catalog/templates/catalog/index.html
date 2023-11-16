@@ -1,5 +1,7 @@
 {% extends "catalog/base_generic.html" %}
-
+{% block title %}
+    <title>Main page</title>
+{% endblock %}
 {% block content %}
 <h1>Local Library Home</h1>
 
@@ -15,15 +17,16 @@
 <img src="{% static 'images/local_library_model_uml.png' %}" alt="My image" width="600px">
 </div>
 
-
 <h2>Dynamic content</h2>
 
 <p>The library has the following record counts:</p>
+
 <ul>
-<li><strong>Books:</strong> {{ num_books }}</li>
-<li><strong>Copies:</strong> {{ num_instances }}</li>
-<li><strong>Copies available:</strong> {{ num_instances_available }}</li>
-<li><strong>Authors:</strong> {{ num_authors }}</li>
+    <li><strong>Books:</strong> {{ num_books }}</li>
+    <li><strong>Copies:</strong> {{ num_instances }}</li>
+    <li><strong>Copies available:</strong> {{ num_instances_available }}</li>
+    <li><strong>Authors:</strong> {{ num_authors }}</li>
+    <li><strong>Book`s num with 'Wise':</strong> {{ num_books_search_title }}</li>
 </ul>
 
 
