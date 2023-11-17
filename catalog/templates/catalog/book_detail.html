@@ -7,7 +7,11 @@
     <!-- author detail link not yet defined -->
     <p><strong>Summary:</strong> {{ book.summary }}</p>
     <p><strong>ISBN:</strong> {{ book.isbn }}</p>
-    <p><strong>Language:</strong> {{ book.languages }}</p>
+    <p><strong>Language:</strong>
+        {% for language in book.languages.all %}
+            {{ language.name }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    </p>
     <p><strong>Genre:</strong> {{ book.genre.all|join:", " }}</p>
 
     <div style="margin-left:20px;margin-top:20px">
@@ -24,6 +28,7 @@
             {% endif %}
             <p><strong>Imprint:</strong> {{ copy.imprint }}</p>
             <p class="text-muted"><strong>Id:</strong> {{ copy.id }}</p>
+
         {% endfor %}
     </div>
 {% endblock %}
