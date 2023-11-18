@@ -1,13 +1,14 @@
-from django.shortcuts import render
+from django.views.generic import CreateView, UpdateView, DeleteView
+
 from .models import Book, Author, BookInstance, Genre
 from django.views import generic, View
 from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 import datetime
-from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.http import HttpResponseRedirect, Http404
+from django.urls import reverse, reverse_lazy
 from catalog.forms import RenewBookForm
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import permission_required
 
 
 def index(request):
@@ -16,6 +17,7 @@ def index(request):
     # Generate counts of some of the main objects
     num_books = Book.objects.all().count()
     num_instances = BookInstance.objects.all().count()
+    num_genres = Genre.objects.all().count()
 
     # Available books (status = 'a')
     num_instances_available = BookInstance.objects.filter(status__exact='a').count()
@@ -62,7 +64,10 @@ class BookDetailView(generic.DetailView):
     paginate_by = 10
 
     def book_detail_view(request, primary_key):
-        book = get_object_or_404(Book, pk=primary_key)
+        try:
+            book = get_object_or_404(Book, pk=primary_key)
+        except Book.DoesNotExist:
+            raise Http404("Book does not exist")
         return render(request, 'catalog/book_detail.html', context={'book': book})
 
 
@@ -86,7 +91,10 @@ class AuthorDetailView(generic.DetailView):
     paginate_by = 10
 
     def author_detail_view(request, primary_key):
-        author = get_object_or_404(Author, pk=primary_key)
+        try:
+            author = get_object_or_404(Author, pk=primary_key)
+        except Author.DoesNotExist:
+            raise Http404("Author does not exist")
         return render(request, 'catalog/author_detail.html', context={'author': author})
 
 
@@ -109,7 +117,17 @@ class LoanedBooksByUserListView(LoginRequiredMixin, generic.ListView):
         )
 
 
-@login_required
+class LoanedBooksAllListView(PermissionRequiredMixin, generic.ListView):
+    """Generic class-based view listing all books on loan. Only visible to users with can_mark_returned permission."""
+    model = BookInstance
+    permission_required = 'catalog.can_mark_returned'
+    template_name = 'catalog/bookinstance_list_borrowed_all.html'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return BookInstance.objects.filter(status__exact='o').order_by('due_back')
+
+
 @permission_required('catalog.can_mark_returned', raise_exception=True)
 def renew_book_librarian(request, pk):
     book_instance = get_object_or_404(BookInstance, pk=pk)
@@ -140,3 +158,35 @@ def renew_book_librarian(request, pk):
     }
 
     return render(request, 'catalog/book_renew_librarian.html', context)
+
+
+class AuthorCreate(CreateView):
+    model = Author
+    fields = '__all__'
+    initial = {'date_of_death': '12/10/2016', }
+
+
+class AuthorUpdate(UpdateView):
+    model = Author
+    fields = ['first_name','last_name','date_of_birth','date_of_death']
+
+
+class AuthorDelete(DeleteView):
+    model = Author
+    success_url = reverse_lazy('authors')
+
+
+class BookCreate(CreateView):
+    model = Book
+    fields = '__all__'
+    initial = {'language': 'English', }
+
+
+class BookUpdate(UpdateView):
+    model = Book
+    fields = '__all__'
+
+
+class BookDelete(DeleteView):
+    model = Book
+    success_url = reverse_lazy('books')

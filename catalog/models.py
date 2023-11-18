@@ -73,9 +73,9 @@ class BookInstance(models.Model):
 
     @property
     def is_overdue(self):
-        """Determines if the book is overdue based on due date and current date."""
-        return bool(self.due_back and date.today() > self.due_back)
-
+        if self.due_back and date.today() > self.due_back:
+            return True
+        return False
 
     LOAN_STATUS = (
         ('m', 'Maintenance'),
@@ -96,6 +96,8 @@ class BookInstance(models.Model):
         ordering = ['due_back']
         permissions = (("can_mark_returned", "Set book as returned"),)
 
+
+
     def get_absolute_url(self):
         """Returns the url to access a particular book instance."""
         return reverse('bookinstance-detail', args=[str(self.id)])
@@ -114,6 +116,7 @@ class Author(models.Model):
 
     class Meta:
         ordering = ['last_name', 'first_name']
+        permissions = (("can_edit_authors", "Set author as edited"),)
 
     def get_absolute_url(self):
         """Returns the URL to access a particular author instance."""
