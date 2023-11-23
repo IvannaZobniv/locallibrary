@@ -8,7 +8,7 @@ import datetime
 from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse, reverse_lazy
 from catalog.forms import RenewBookForm
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import permission_required, login_required
 
 
 def index(request):
@@ -128,8 +128,10 @@ class LoanedBooksAllListView(PermissionRequiredMixin, generic.ListView):
         return BookInstance.objects.filter(status__exact='o').order_by('due_back')
 
 
+@login_required
 @permission_required('catalog.can_mark_returned', raise_exception=True)
 def renew_book_librarian(request, pk):
+    """View function for renewing a specific BookInstance by librarian."""
     book_instance = get_object_or_404(BookInstance, pk=pk)
 
     # If this is a POST request then process the Form data
@@ -147,7 +149,7 @@ def renew_book_librarian(request, pk):
             # redirect to a new URL:
             return HttpResponseRedirect(reverse('all-borrowed'))
 
-    # If this is a GET (or any other method) create the default form.
+    # If this is a GET (or any other method) create the default form
     else:
         proposed_renewal_date = datetime.date.today() + datetime.timedelta(weeks=3)
         form = RenewBookForm(initial={'renewal_date': proposed_renewal_date})
